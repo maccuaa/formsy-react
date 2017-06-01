@@ -2,13 +2,13 @@ import React from 'react'
 import TestUtils from 'react-dom/test-utils'
 
 import Formsy from './..'
-import { ReadOnlyInput } from './utils/ReadOnlyInput'
+import TestInput from './utils/TestInput'
 
 class TestForm extends React.Component {
   render () {
     return (
       <Formsy.Form>
-        <ReadOnlyInput name='foo' validations={this.props.rule} value={this.props.inputValue} />
+        <TestInput name='foo' validations={this.props.rule} value={this.props.inputValue} />
       </Formsy.Form>
     )
   }
@@ -20,7 +20,7 @@ export default {
 
     'should pass with a default value': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -28,7 +28,7 @@ export default {
 
     'should fail with a string too small': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' inputValue='hi' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), false)
       test.done()
 
@@ -36,7 +36,7 @@ export default {
 
     'should fail with a string too long': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' inputValue='hi ho happ' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), false)
       test.done()
 
@@ -44,7 +44,7 @@ export default {
 
     'should pass with matching length': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' inputValue='foo' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -52,7 +52,7 @@ export default {
 
     'should pass with undefined': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' inputValue={undefined} />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -60,7 +60,7 @@ export default {
 
     'should pass with null': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' inputValue={null} />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -68,7 +68,7 @@ export default {
 
     'should pass with empty string': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' inputValue='' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -76,7 +76,7 @@ export default {
 
     'should fail with a number': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:3' inputValue={123} />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), false)
       test.done()
 
@@ -88,7 +88,7 @@ export default {
 
     'should pass with a default value': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -96,7 +96,7 @@ export default {
 
     'should fail with a string too small': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' inputValue='hi' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), false)
       test.done()
 
@@ -104,7 +104,7 @@ export default {
 
     'should fail with a string too long': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' inputValue='hi ho happ' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), false)
       test.done()
 
@@ -112,7 +112,7 @@ export default {
 
     'should pass with matching length': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' inputValue='' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -120,7 +120,7 @@ export default {
 
     'should pass with undefined': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' inputValue={undefined} />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -128,7 +128,7 @@ export default {
 
     'should pass with null': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' inputValue={null} />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -136,7 +136,7 @@ export default {
 
     'should pass with empty string': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' inputValue='' />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), true)
       test.done()
 
@@ -144,7 +144,7 @@ export default {
 
     'should fail with a number': function (test) {
       const form = TestUtils.renderIntoDocument(<TestForm rule='isLength:0' inputValue={123} />)
-      const inputComponent = TestUtils.findRenderedComponentWithType(form, ReadOnlyInput)
+      const inputComponent = TestUtils.findRenderedComponentWithType(form, TestInput)
       test.equal(inputComponent.isValid(), false)
       test.done()
 

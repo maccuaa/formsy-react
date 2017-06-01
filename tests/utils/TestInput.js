@@ -11,15 +11,31 @@ class TestInput extends React.PureComponent {
   }
 
   render() {
-    return (
-      <input {...this.props} type={this.props.type} value={this.props.getValue()} onChange={this.updateValue}/>
-    )
-  }
-}
+    const {
+      getErrorMessage,
+      getErrorMessages,
+      getValue,
+      hasValue,
+      isFormDisabled,
+      isFormSubmitted,
+      isPristine,
+      isRequired,
+      isValid,
+      isValidValue,
+      resetValue,
+      setValidations,
+      setValue,
+      showError,
+      showRequired,
+      validationError,
+      validationErrors,
+      validations,
+      ...rest
+    } = this.props;
 
-export class ReadOnlyInput extends TestInput {
-  render() {
-    return <input value={this.getValue()} readOnly/>;
+    return (
+      <input {...rest} type={this.props.type} value={getValue()} onChange={this.updateValue}/>
+    )
   }
 }
 

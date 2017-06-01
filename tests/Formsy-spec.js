@@ -5,7 +5,6 @@ import TestUtils from 'react-dom/test-utils';
 import Formsy from './..';
 import TestInput from './utils/TestInput';
 import TestInputHoc from './utils/TestInputHoc';
-import immediate from './utils/immediate';
 import sinon from 'sinon';
 
 export default {
@@ -64,128 +63,58 @@ export default {
       }
 
       const form = TestUtils.renderIntoDocument(<TestForm/>);
-      immediate(() => {
-        TestUtils.Simulate.submit(ReactDOM.findDOMNode(form));
-        test.deepEqual(model, {name: 'foo'});
-        test.done();
-      });
+
+      TestUtils.Simulate.submit(ReactDOM.findDOMNode(form));
+      test.deepEqual(model, {name: 'foo'});
+
       test.done()
     },
 
-    'should allow for inputs being added dynamically': function (test) {
+    'should allow for inputs being added dynamically': async function (test) {
       const inputs = [];
-      let forceUpdate = null;
-      let model = null;
 
-      class TestForm extends React.Component {
-        componentWillMount() {
-          forceUpdate = this.forceUpdate.bind(this);
-        }
+      const form = TestUtils.renderIntoDocument(
+        <Formsy.Form>
+          {inputs}
+        </Formsy.Form>
+      );
 
-        render() {
-          return (
-            <Formsy.Form onSubmit={(formModel) => (model = formModel)}>
-              {inputs}
-            </Formsy.Form>);
-        }
-      }
+      test.deepEqual(form.getModel(), {});
 
-      const form = TestUtils.renderIntoDocument(<TestForm/>);
+      inputs.push(<TestInput name="test" value="" key={inputs.length}/>);
 
-      // Wait before adding the input
-      setTimeout(() => {
-        inputs.push(<TestInput name="test" value="" key={inputs.length}/>);
+      await form.forceUpdate();
 
-        forceUpdate(() => {
-          // Wait for next event loop, as that does the form
-          immediate(() => {
-            TestUtils.Simulate.submit(ReactDOM.findDOMNode(form));
-            test.ok('test' in model);
-            test.done();
-          });
+      test.ok('test' in form.getModel());
 
-        });
-
-      }, 10);
+      test.done();
     },
 
-    'should allow dynamically added inputs to update the form-model': function (test) {
+    'should allow dynamically added inputs to update the form-model': async function (test) {
       const inputs = [];
-      let forceUpdate = null;
-      let model = null;
 
-      class TestForm extends React.Component {
-        componentWillMount() {
-          forceUpdate = this.forceUpdate.bind(this);
-        }
+      const form = TestUtils.renderIntoDocument(
+        <Formsy.Form>
+          {inputs}
+        </Formsy.Form>
+      );
 
-        render() {
-          return (
-            <Formsy.Form onSubmit={(formModel) => (model = formModel)}>
-              {inputs}
-            </Formsy.Form>);
-        }
-      }
+      test.deepEqual(form.getModel(), {});
 
-      const form = TestUtils.renderIntoDocument(<TestForm/>);
+      inputs.push(<TestInput name="test" value="" key={inputs.length}/>);
 
-      // Wait before adding the input
-      immediate(() => {
-        inputs.push(<TestInput name="test" key={inputs.length}/>);
+      await form.forceUpdate();
 
-        forceUpdate(() => {
+      const input = TestUtils.findRenderedDOMComponentWithTag(form, 'input');
 
-          // Wait for next event loop, as that does the form
-          immediate(() => {
-            TestUtils.Simulate.change(TestUtils.findRenderedDOMComponentWithTag(form, 'INPUT'), {target: {value: 'foo'}});
-            TestUtils.Simulate.submit(ReactDOM.findDOMNode(form));
-            test.equal(model.test, 'foo');
-            test.done();
-          });
+      TestUtils.Simulate.change(input, {target: {value: 'foo'}});
 
-        });
+      await form.forceUpdate();
 
-      });
-    },
+      test.deepEqual(form.getModel(), {test: 'foo'});
 
-    'should allow a dynamically updated input to update the form-model': function (test) {
-      let forceUpdate = null;
-      let model = null;
-
-      class TestForm extends React.Component {
-        componentWillMount() {
-          forceUpdate = this.forceUpdate.bind(this);
-        }
-
-        render() {
-          const input = <TestInput name="test" value={this.props.value} />;
-
-          return (
-            <Formsy.Form onSubmit={(formModel) => (model = formModel)}>
-              {input}
-            </Formsy.Form>);
-        }
-      }
-
-      let form = TestUtils.renderIntoDocument(<TestForm value="foo"/>);
-
-      // Wait before changing the input
-      immediate(() => {
-        form = TestUtils.renderIntoDocument(<TestForm value="bar"/>);
-
-        forceUpdate(() => {
-          // Wait for next event loop, as that does the form
-          immediate(() => {
-            TestUtils.Simulate.submit(ReactDOM.findDOMNode(form));
-            test.equal(model.test, 'bar');
-            test.done();
-          });
-
-        });
-
-      });
+      test.done();
     }
-
   },
 
   'validations': {
@@ -205,8 +134,11 @@ export default {
       );
 
       const input = TestUtils.findRenderedDOMComponentWithTag(form, 'input');
+
       TestUtils.Simulate.change(ReactDOM.findDOMNode(input), {target: {value: 'bar'}});
+
       test.equal(runRule.calledWith({one: 'bar'}, 'bar', true), true);
+
       test.equal(notRunRule.called, false);
 
       test.done();
@@ -221,9 +153,8 @@ export default {
       Formsy.addValidationRule('ruleB', ruleB);
 
       class TestForm extends React.Component {
-        constructor(props) {
-          super(props);
-          this.state = {rule: 'ruleA'};
+        state = {
+          rule: 'ruleA'
         }
         changeRule() {
           this.setState({
@@ -240,9 +171,13 @@ export default {
       }
 
       const form = TestUtils.renderIntoDocument(<TestForm/>);
+
+      test.equal(ruleA.called, true);
+
       form.changeRule();
       const input = TestUtils.findRenderedDOMComponentWithTag(form, 'input');
-      TestUtils.Simulate.change(ReactDOM.findDOMNode(input), {target: {value: 'bar'}});
+      TestUtils.Simulate.change(input, {target: {value: 'bar'}});
+
       test.equal(ruleB.calledWith({one: 'bar'}, 'bar', true), true);
 
       test.done();
@@ -254,39 +189,32 @@ export default {
       const isInValidSpy = sinon.spy();
 
       class TestForm extends React.Component {
-        constructor(props) {
-          super(props);
-          this.state = {showSecondInput: false};
-        }
-        addInput() {
-          this.setState({
-            showSecondInput: true
-          });
+        state = {
+          showSecondInput: false
         }
         render() {
           return (
-            <Formsy.Form ref="formsy" onInvalid={isInValidSpy}>
+            <Formsy.Form onInvalid={isInValidSpy}>
               <TestInput name="one" validations="isEmail" value="foo@bar.com"/>
-              {
-                this.state.showSecondInput ?
-                  <TestInput name="two" validations="isEmail" value="foo@bar"/>
-                :
-                  null
-              }
+              {this.state.showSecondInput && <TestInput name="two" validations="isEmail" value="foo@bar"/>}
             </Formsy.Form>
           );
         }
-      }
+      };
 
-      const form = TestUtils.renderIntoDocument(<TestForm/>);
+      const testForm = TestUtils.renderIntoDocument(<TestForm/>);
 
-      test.equal(form.refs.formsy.state.isValid, true);
-      form.addInput();
+      const formsy = TestUtils.findRenderedComponentWithType(testForm, Formsy.Form);
 
-      immediate(() => {
-        test.equal(isInValidSpy.called, true);
-        test.done();
+      test.equal(formsy.state.isValid, true);
+
+      testForm.setState({
+        showSecondInput: true
       });
+
+      test.equal(isInValidSpy.called, true);
+
+      test.done();
 
     },
 
@@ -295,40 +223,32 @@ export default {
       const isValidSpy = sinon.spy();
 
       class TestForm extends React.Component {
-        constructor(props) {
-          super(props);
-          this.state = {showSecondInput: true};
-        }
-        removeInput() {
-          this.setState({
-            showSecondInput: false
-          });
+        state = {
+          showSecondInput: true
         }
         render() {
           return (
             <Formsy.Form ref="formsy" onValid={isValidSpy}>
               <TestInput name="one" validations="isEmail" value="foo@bar.com"/>
-              {
-                this.state.showSecondInput ?
-                  <TestInput name="two" validations="isEmail" value="foo@bar"/>
-                :
-                  null
-              }
+              {this.state.showSecondInput && <TestInput name="two" validations="isEmail" value="foo@bar"/>}
             </Formsy.Form>
           );
         }
       }
 
-      const form = TestUtils.renderIntoDocument(<TestForm/>);
+      const testForm = TestUtils.renderIntoDocument(<TestForm/>);
 
-      test.equal(form.refs.formsy.state.isValid, false);
-      form.removeInput();
+      const formsy = TestUtils.findRenderedComponentWithType(testForm, Formsy.Form);
 
-      immediate(() => {
-        test.equal(isValidSpy.called, true);
-        test.done();
+      test.equal(formsy.state.isValid, false);
+
+      testForm.setState({
+        showSecondInput: false
       });
 
+      test.equal(isValidSpy.called, true);
+
+      test.done();
 
     },
 
@@ -355,67 +275,61 @@ export default {
 
   },
 
-  'should not trigger onChange when form is mounted': function (test) {
-    const hasChanged = sinon.spy();
+  'onChange': {
 
-    class TestForm extends React.Component {
-      render() {
-        return <Formsy.Form onChange={hasChanged}></Formsy.Form>;
+    'should not trigger onChange when form is mounted': function (test) {
+      const hasChanged = sinon.spy();
+
+      class TestForm extends React.Component {
+        render() {
+          return <Formsy.Form onChange={hasChanged}></Formsy.Form>;
+        }
       }
-    }
 
-    TestUtils.renderIntoDocument(<TestForm/>);
-    test.equal(hasChanged.called, false);
-    test.done();
-  },
+      TestUtils.renderIntoDocument(<TestForm/>);
+      test.equal(hasChanged.called, false);
+      test.done();
+    },
 
-  'should trigger onChange once when form element is changed': function (test) {
+    'should trigger onChange once when form element is changed': function (test) {
 
-    const hasChanged = sinon.spy();
-    const form = TestUtils.renderIntoDocument(
-      <Formsy.Form onChange={hasChanged}>
-        <TestInput name="foo"/>
-      </Formsy.Form>
-    );
-    TestUtils.Simulate.change(TestUtils.findRenderedDOMComponentWithTag(form, 'INPUT'), {target: {value: 'bar'}});
-    test.equal(hasChanged.calledOnce, true);
-    test.done();
-
-  },
-
-  'should trigger onChange once when new input is added to form': function (test) {
-    const hasChanged = sinon.spy();
-
-    class TestForm extends React.Component {
-      state = {
-        showInput: false
-      };
-
-      addInput = () => {
-        this.setState({
-          showInput: true
-        })
-      };
-
-      render() {
-        return (
-          <Formsy.Form onChange={hasChanged}>
-            {
-              this.state.showInput ?
-                <TestInput name="test"/>
-              :
-                null
-            }
-          </Formsy.Form>);
-      }
-    }
-
-    const form = TestUtils.renderIntoDocument(<TestForm/>);
-    form.addInput();
-    immediate(() => {
+      const hasChanged = sinon.spy();
+      const form = TestUtils.renderIntoDocument(
+        <Formsy.Form onChange={hasChanged}>
+          <TestInput name="foo"/>
+        </Formsy.Form>
+      );
+      TestUtils.Simulate.change(TestUtils.findRenderedDOMComponentWithTag(form, 'INPUT'), {target: {value: 'bar'}});
       test.equal(hasChanged.calledOnce, true);
       test.done();
-    });
+
+    },
+
+    'should trigger onChange once when new input is added to form': function (test) {
+      const hasChanged = sinon.spy();
+
+      class TestForm extends React.Component {
+        state = {
+          showInput: false
+        };
+
+        render() {
+          return (
+            <Formsy.Form onChange={hasChanged}>
+              {this.state.showInput && <TestInput name="test"/>}
+            </Formsy.Form>);
+        }
+      }
+
+      const form = TestUtils.renderIntoDocument(<TestForm/>);
+
+      form.setState({showInput: true});
+
+      test.equal(hasChanged.calledOnce, true);
+
+      test.done();
+    }
+
   },
 
   'Update a form': {
@@ -423,8 +337,6 @@ export default {
     'should allow elements to check if the form is disabled': function (test) {
       class TestForm extends React.Component {
         state = { disabled: true };
-        enableForm = () => { this.setState({ disabled: false }); };
-
         render() {
           return (
             <Formsy.Form disabled={this.state.disabled}>
@@ -437,11 +349,9 @@ export default {
       const input = TestUtils.findRenderedComponentWithType(form, TestInput);
       test.equal(input.isFormDisabled(), true);
 
-      form.enableForm();
-      immediate(() => {
-        test.equal(input.isFormDisabled(), false);
-        test.done();
-      });
+      form.setState({disabled: false})
+      test.equal(input.isFormDisabled(), false);
+      test.done();
     },
 
     'should be possible to pass error state of elements by changing an errors attribute': function (test) {
@@ -462,18 +372,11 @@ export default {
 
       const form = TestUtils.renderIntoDocument(<TestForm/>);
 
-      // Wait for update
-      immediate(() => {
-        const input = TestUtils.findRenderedComponentWithType(form, TestInput);
-        test.equal(input.getErrorMessage(), 'bar');
-        input.setValue('gotValue');
-
-        // Wait for update
-        immediate(() => {
-          test.equal(input.getErrorMessage(), null);
-          test.done();
-        });
-      });
+      const input = TestUtils.findRenderedComponentWithType(form, TestInput);
+      test.equal(input.getErrorMessage(), 'bar');
+      input.setValue('gotValue');
+      test.equal(input.getErrorMessage(), null);
+      test.done();
     },
 
     'should trigger an onValidSubmit when submitting a valid form': function (test) {
@@ -548,12 +451,6 @@ export default {
           value: true
         };
 
-        changeValue = () => {
-          this.setState({
-            value: false
-          });
-        };
-
         render() {
           return (
             <Formsy.Form onSubmit={onSubmit}>
@@ -565,7 +462,7 @@ export default {
       }
 
       const form = TestUtils.renderIntoDocument(<TestForm/>);
-      form.changeValue();
+      form.setState({value: false});
       TestUtils.Simulate.submit(ReactDOM.findDOMNode(form));
       test.equal(onSubmit.calledWith({foo: false}), true);
       test.done();
@@ -596,13 +493,6 @@ export default {
         state = {
           value: true
         };
-
-        changeValue = () => {
-          this.setState({
-            value: false
-          });
-        };
-
         render() {
           return (
             <Formsy.Form>
@@ -617,7 +507,7 @@ export default {
       const input = TestUtils.findRenderedComponentWithType(form, TestInput);
       const formsyForm = TestUtils.findRenderedComponentWithType(form, Formsy.Form);
       test.equal(input.getValue(), true);
-      form.changeValue();
+      form.setState({value: false});
       test.equal(input.getValue(), false);
       formsyForm.reset();
       test.equal(input.getValue(), true);
@@ -630,13 +520,6 @@ export default {
         state = {
           value: true
         };
-
-        changeValue = () => {
-          this.setState({
-            value: false
-          });
-        };
-
         render() {
           return (
             <Formsy.Form>
@@ -652,38 +535,38 @@ export default {
       const formsyForm = TestUtils.findRenderedComponentWithType(form, Formsy.Form);
 
       test.equal(input.getValue(), true);
-      form.changeValue();
+      form.setState({value: false});
       test.equal(input.getValue(), false);
       formsyForm.reset({
         foo: 'bar'
       });
       test.equal(input.getValue(), 'bar');
       test.done();
-    }
+    },
 
-  },
-
-  'should be able to reset the form to empty values': function (test) {
-    class TestForm extends React.Component {
-      render() {
-        return (
-          <Formsy.Form>
-            <TestInput name="foo" value="42" type="checkbox" />
-            <button type="submit">Save</button>
-          </Formsy.Form>
-        );
+    'should be able to reset the form to empty values': function (test) {
+      class TestForm extends React.Component {
+        render() {
+          return (
+            <Formsy.Form>
+              <TestInput name="foo" value="42" type="checkbox" />
+              <button type="submit">Save</button>
+            </Formsy.Form>
+          );
+        }
       }
+
+      const form = TestUtils.renderIntoDocument(<TestForm/>);
+      const input = TestUtils.findRenderedComponentWithType(form, TestInput);
+      const formsyForm = TestUtils.findRenderedComponentWithType(form, Formsy.Form);
+
+      formsyForm.reset({
+        foo: ''
+      });
+      test.equal(input.getValue(), '');
+      test.done();
     }
 
-    const form = TestUtils.renderIntoDocument(<TestForm/>);
-    const input = TestUtils.findRenderedComponentWithType(form, TestInput);
-    const formsyForm = TestUtils.findRenderedComponentWithType(form, Formsy.Form);
-
-    formsyForm.reset({
-      foo: ''
-    });
-    test.equal(input.getValue(), '');
-    test.done();
   },
 
   '.isChanged()': {
@@ -736,7 +619,5 @@ export default {
       test.done();
 
     }
-
   }
-
-};
+}

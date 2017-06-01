@@ -83,6 +83,12 @@ export default (Component) => class extends React.Component {
     this.setValidations(nextProps.validations, nextProps.required);
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    const propsChanged = !utils.isSame(this.props, nextProps);
+    const stateChanged = !utils.isSame(this.state, nextState);
+    return propsChanged || stateChanged;
+  }
+
   componentDidUpdate(prevProps) {
     // If the value passed has changed, set it. If value is not passed it will
     // internally update, and this will never run

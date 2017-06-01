@@ -107,8 +107,10 @@ class Form extends React.Component {
     // so validation becomes visible (if based on isPristine)
     this.setFormPristine(false);
     var model = this.getModel();
-    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError);
-    this.state.isValid ? this.props.onValidSubmit(model, this.resetModel, this.updateInputsWithError) : this.props.onInvalidSubmit(model, this.resetModel, this.updateInputsWithError);
+    this.props.onSubmit(model, this.resetModel.bind(this), this.updateInputsWithError.bind(this));
+    this.state.isValid ?
+      this.props.onValidSubmit(model, this.resetModel.bind(this), this.updateInputsWithError.bind(this)) :
+      this.props.onInvalidSubmit(model, this.resetModel.bind(this), this.updateInputsWithError.bind(this));
   }
 
   mapModel(model) {
@@ -176,6 +178,7 @@ class Form extends React.Component {
   // stored in the inputs map. Change their state to invalid
   // and set the serverError message
   updateInputsWithError(errors) {
+
     Object.keys(errors).forEach((name, index) => {
       var component = utils.find(this.inputs, component => component.props.name === name);
       if (!component) {
@@ -187,7 +190,7 @@ class Form extends React.Component {
         _externalError: typeof errors[name] === 'string' ? [errors[name]] : errors[name]
       }];
       component.setState.apply(component, args);
-    });
+    }, this);
   }
 
   isFormDisabled = () => {
@@ -378,8 +381,10 @@ class Form extends React.Component {
         _isRequired: validation.isRequired,
         _validationError: validation.error,
         _externalError: !validation.isValid && component.state._externalError ? component.state._externalError : null
-      }, index === this.inputs.length - 1 ? onValidationComplete : null);
+      });
     });
+
+    onValidationComplete();
 
     // If there are no inputs, set state where form is ready to trigger
     // change event. New inputs might be added later

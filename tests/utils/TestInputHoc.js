@@ -7,7 +7,29 @@ class TestInput extends React.Component {
   }
 
   render () {
-    return <input {...this.props} />
+    const {
+      getErrorMessage,
+      getErrorMessages,
+      getValue,
+      hasValue,
+      innerRef,
+      isFormDisabled,
+      isFormSubmitted,
+      isPristine,
+      isRequired,
+      isValid,
+      isValidValue,
+      resetValue,
+      setValidations,
+      setValue,
+      showError,
+      showRequired,
+      validationError,
+      validationErrors,
+      validations,
+      ...rest
+    } = this.props;
+    return <input {...rest} />
   }
 }
 
