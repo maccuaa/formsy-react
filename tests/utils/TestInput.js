@@ -1,21 +1,42 @@
 import React from 'react';
 import Formsy from './../..';
 
-const defaultProps = {
-  mixins: [Formsy.Mixin],
-  getDefaultProps() {
-    return { type: 'text' };
-  },
-  updateValue(event) {
-    this.setValue(event.target[this.props.type === 'checkbox' ? 'checked' : 'value']);
-  },
-  render() {
-    return <input type={this.props.type} value={this.getValue()} onChange={this.updateValue}/>;
+class TestInput extends React.PureComponent {
+  static defaultProps = {
+    type: 'text'
   }
-};
 
-export function InputFactory(props) {
-  return React.createClass(Object.assign(defaultProps, props));
+  updateValue = (event) => {
+    this.props.setValue(event.target[this.props.type === 'checkbox' ? 'checked' : 'value']);
+  }
+
+  render() {
+    const {
+      getErrorMessage,
+      getErrorMessages,
+      getValue,
+      hasValue,
+      isFormDisabled,
+      isFormSubmitted,
+      isPristine,
+      isRequired,
+      isValid,
+      isValidValue,
+      resetValue,
+      setValidations,
+      setValue,
+      showError,
+      showRequired,
+      validationError,
+      validationErrors,
+      validations,
+      ...rest
+    } = this.props;
+
+    return (
+      <input {...rest} type={this.props.type} value={getValue()} onChange={this.updateValue}/>
+    )
+  }
 }
 
-export default React.createClass(defaultProps);
+export default Formsy.Mixin(TestInput);
