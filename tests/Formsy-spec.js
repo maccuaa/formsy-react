@@ -6,6 +6,7 @@ import Formsy from './..';
 import TestInput from './utils/TestInput';
 import TestInputHoc from './utils/TestInputHoc';
 import sinon from 'sinon';
+import validationRules from './../lib/validationRules';
 
 export default {
 
@@ -179,6 +180,47 @@ export default {
       TestUtils.Simulate.change(input, {target: {value: 'bar'}});
 
       test.equal(ruleB.calledWith({one: 'bar'}, 'bar', true), true);
+
+      test.done();
+
+    },
+
+    'should not allow a custom validation to be overwritten': function (test) {
+
+      const ruleC = sinon.spy();
+      const ruleD = sinon.spy();
+
+      Formsy.addValidationRule('ruleC', ruleC);
+
+      class TestForm extends React.Component {
+        state = { rule: 'ruleC' }
+        changeRule() {
+          this.setState({
+            rule: 'ruleC'
+          });
+        }
+        render() {
+          return (
+            <Formsy.Form>
+              <TestInput name="one" validations={this.state.rule} value="foo"/>
+            </Formsy.Form>
+          );
+        }
+      }
+
+      const form = TestUtils.renderIntoDocument(<TestForm/>);
+
+      test.equal(ruleC.called, true);
+
+      Formsy.addValidationRule('ruleC', ruleD);
+
+      form.changeRule();
+
+      const input = TestUtils.findRenderedDOMComponentWithTag(form, 'input');
+
+      TestUtils.Simulate.change(input, {target: {value: 'bar'}});
+
+      test.equal(ruleD.called, false);
 
       test.done();
 

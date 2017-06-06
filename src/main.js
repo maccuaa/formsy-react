@@ -1,6 +1,6 @@
 var React = global.React || require('react');
 
-import PropTypes from 'prop-types'
+import PropTypes from 'prop-types';
 import formDataToObject from 'form-data-to-object';
 import validationRules from './validationRules.js';
 import utils from './utils.js';
@@ -21,6 +21,10 @@ Formsy.defaults = function (passedOptions) {
 };
 
 Formsy.addValidationRule = function (name, func) {
+  if (Object.keys(validationRules).indexOf(name) !== -1) {
+    console.error('A Validation Rule with that name already exists: ' + name);
+    return;
+  }
   validationRules[name] = func;
 };
 
