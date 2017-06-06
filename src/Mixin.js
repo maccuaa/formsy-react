@@ -30,7 +30,7 @@ const convertValidationsToObject = (validations) => {
   return validations || {};
 };
 
-export default (Component) => class extends React.Component {
+export default (Component) => class extends React.PureComponent {
   state = {
     _value: this.props.value,
     _isRequired: false,
@@ -81,12 +81,6 @@ export default (Component) => class extends React.Component {
   // We have to make the validate method is kept when new props are added
   componentWillReceiveProps(nextProps) {
     this.setValidations(nextProps.validations, nextProps.required);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const propsChanged = !utils.isSame(this.props, nextProps);
-    const stateChanged = !utils.isSame(this.state, nextState);
-    return propsChanged || stateChanged;
   }
 
   componentDidUpdate(prevProps) {
