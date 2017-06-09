@@ -198,7 +198,7 @@ class Form extends React.Component {
   }
 
   isFormDisabled = () => {
-    return this.props.disabled;
+    return this.props.disabled || false;
   }
 
   getCurrentValues() {
@@ -284,20 +284,18 @@ class Form extends React.Component {
           return error ? [error] : null;
         }
 
-        if (validationResults.failed.length) {
-          return validationResults.failed.map(function(failed) {
-            var errorMessage = validationErrors[failed.method] ? validationErrors[failed.method] : validationError;
+        return validationResults.failed.map(function(failed) {
+          var errorMessage = validationErrors && validationErrors[failed.method] ? validationErrors[failed.method] : validationError;
 
-            failed.args && [].concat(failed.args).forEach((arg, i) => {
-              errorMessage = errorMessage.replace(new RegExp('\\{' + i + '\\}', 'g'), arg);
-            });
-
-            return errorMessage;
-          }).filter(function(x, pos, arr) {
-            // Remove duplicates
-            return arr.indexOf(x) === pos;
+          failed.args && [].concat(failed.args).forEach((arg, i) => {
+            errorMessage = errorMessage.replace(new RegExp('\\{' + i + '\\}', 'g'), arg);
           });
-        }
+
+          return errorMessage;
+        }).filter(function(x, pos, arr) {
+          // Remove duplicates
+          return arr.indexOf(x) === pos;
+        });
 
       }.call(this))
     };

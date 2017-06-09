@@ -125,6 +125,28 @@ export default {
 
   },
 
+  'should display requiredError when form is submitted and a required field is missing': function (test) {
+
+    const form = TestUtils.renderIntoDocument(
+      <Formsy.Form>
+        <TestInput name="A" value="" required requiredError="foo" />
+      </Formsy.Form>
+    );
+
+    const testInput = TestUtils.findRenderedComponentWithType(form, TestInput);
+
+    test.equal(testInput.isRequired(), true);
+    test.equal(testInput.isValid(), false);
+    test.equal(testInput.getErrorMessage(), null);
+
+    TestUtils.Simulate.submit(ReactDOM.findDOMNode(form));
+
+    test.equal(testInput.getErrorMessage(), 'foo');
+
+    test.done();
+
+  },
+
   'should return true or false when calling isPristine() depending on input has been "touched" or not': function (test) {
 
     const form = TestUtils.renderIntoDocument(
@@ -156,10 +178,11 @@ export default {
     );
 
     const testInput = TestUtils.findRenderedComponentWithType(form, TestInput);
+    const input = TestUtils.findRenderedDOMComponentWithTag(form, 'input');
 
     test.equal(testInput.getValue(), undefined);
 
-    testInput.setValue('foo')
+    TestUtils.Simulate.change(input, {target: {value: 'foo'}});
 
     test.equal(testInput.getValue(), 'foo');
 

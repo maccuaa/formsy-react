@@ -10,7 +10,7 @@ const getDisplayName = (Component) => {
   );
 }
 
-export default (Component) => Mixin(class extends React.Component {
+export default (Component) => class extends Mixin {
   displayName = `Formsy(${getDisplayName(Component)})`
 
   render() {
@@ -19,4 +19,4 @@ export default (Component) => Mixin(class extends React.Component {
       <Component ref={innerRef} {...this.props} />
     )
   }
-})
+}

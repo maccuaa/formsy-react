@@ -30,7 +30,15 @@ const convertValidationsToObject = (validations) => {
   return validations || {};
 };
 
-export default (Component) => class extends React.PureComponent {
+export default class Mixin extends React.PureComponent {
+
+  static propTypes = {
+    requiredError: PropTypes.string,
+    validationError: PropTypes.string,
+    validationErrors: PropTypes.object,
+    validations: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  }
+
   state = {
     _value: this.props.value,
     _isRequired: false,
@@ -42,9 +50,15 @@ export default (Component) => class extends React.PureComponent {
     _formSubmitted: false
   }
 
-  static defaultProps = {
-    validationError: '',
-    validationErrors: {}
+  static get defaultProps() {
+    return {
+      validationError: '',
+      validationErrors: {}
+    };
+  }
+
+  static set defaultProps (props) {
+    Object.assign(Mixin.defaultProps, props);
   }
 
   static contextTypes = {
@@ -54,27 +68,13 @@ export default (Component) => class extends React.PureComponent {
   componentWillMount() {
     var configure = () => {
       this.setValidations(this.props.validations, this.props.required);
-
-      // Pass a function instead?
       this.context.formsy.attachToForm(this);
-      //this.props._attachToForm(this);
     };
 
     if (!this.props.name) {
       throw new Error('Form Input requires a name property when used');
     }
 
-    /*
-    if (!this.props._attachToForm) {
-      return setTimeout(function () {
-        if (!this.isMounted()) return;
-        if (!this.props._attachToForm) {
-          throw new Error('Form Mixin requires component to be nested in a Form');
-        }
-        configure();
-      }.bind(this), 0);
-    }
-    */
     configure();
   }
 
@@ -99,30 +99,17 @@ export default (Component) => class extends React.PureComponent {
   // Detach it when component unmounts
   componentWillUnmount() {
     this.context.formsy.detachFromForm(this);
-    //this.props._detachFromForm(this);
   }
 
-  render() {
-    const props = {
-      setValidations: this.setValidations,
-      setValue: this.setValue,
-      resetValue: this.resetValue,
-      getValue: this.getValue,
-      hasValue: this.hasValue,
-      getErrorMessage: this.getErrorMessage,
-      getErrorMessages: this.getErrorMessages,
-      isFormDisabled: this.isFormDisabled,
-      isValid: this.isValid,
-      isPristine: this.isPristine,
-      isFormSubmitted: this.isFormSubmitted,
-      isRequired: this.isRequired,
-      showRequired: this.showRequired,
-      showError: this.showError,
-      isValidValue: this.isValidValue,
-      ...this.props
-    };
-
-    return <Component {...props} />
+  removeFormsyProps = (props) => {
+    const {
+      requiredError,
+      validations,
+      validationError,
+      validationErrors,
+      ...rest
+    } = props;
+    return rest;
   }
 
   setValidations = (validations, required) => {
@@ -138,7 +125,6 @@ export default (Component) => class extends React.PureComponent {
       _isPristine: false
     },  () => {
       this.context.formsy.validate(this);
-      //this.props._validate(this);
     });
   }
 
@@ -148,7 +134,6 @@ export default (Component) => class extends React.PureComponent {
       _isPristine: true
     }, () => {
       this.context.formsy.validate(this);
-      //this.props._validate(this);
     });
   }
 
@@ -166,12 +151,13 @@ export default (Component) => class extends React.PureComponent {
   }
 
   getErrorMessages = () => {
-    return !this.isValid() || this.showRequired() ? (this.state._externalError || this.state._validationError || []) : [];
+    const isRequiredError = this.isRequired() && !this.isPristine() && !this.isValid() && this.isFormSubmitted() && this.props.requiredError;
+
+    return (!this.isValid() || this.showRequired()) ? (this.state._externalError || this.state._validationError || (isRequiredError && [isRequiredError]) || []) : [];
   }
 
   isFormDisabled = () => {
     return this.context.formsy.isFormDisabled();
-    //return this.props._isFormDisabled();
   }
 
   isValid = () => {
@@ -200,6 +186,5 @@ export default (Component) => class extends React.PureComponent {
 
   isValidValue = (value) => {
     return this.context.formsy.isValidValue.call(null, this, value);
-    //return this.props._isValidValue.call(null, this, value);
   }
 };
