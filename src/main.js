@@ -20,8 +20,8 @@ Formsy.defaults = function (passedOptions) {
   options = passedOptions;
 };
 
-Formsy.addValidationRule = function (name, func) {
-  if (Object.keys(validationRules).indexOf(name) !== -1) {
+Formsy.addValidationRule = function (name, func, force = false) {
+  if (!force && Object.keys(validationRules).indexOf(name) !== -1) {
     console.error('A Validation Rule with that name already exists: ' + name);
     return;
   }

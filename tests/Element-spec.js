@@ -8,6 +8,20 @@ import TestInput from './utils/TestInput';
 
 export default {
 
+  'should fail if no name is passed to Mixin': function (test) {
+    const fails = () => {
+      return TestUtils.renderIntoDocument(
+        <Formsy.Form>
+          <TestInput/>
+        </Formsy.Form>
+      );
+    };
+    test.throws(fails, Error);
+
+    test.done();
+
+  },
+
   'should return passed and setValue() value when using getValue()': function (test) {
 
     const form = TestUtils.renderIntoDocument(
