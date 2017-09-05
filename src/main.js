@@ -54,7 +54,6 @@ class Form extends React.Component {
     preventExternalInvalidation: false
   }
 
-
   getChildContext() {
     return {
       formsy: {
